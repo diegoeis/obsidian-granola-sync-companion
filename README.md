@@ -11,32 +11,32 @@ A companion plugin for Obsidian Granola Sync that prevents note duplication and 
 
 ## Installation
 
-### Método 1: Script Automático (Recomendado)
+### Method 1: Automatic Script (Recommended)
 
 ```bash
-# Instalar diretamente no vault padrão
+# Install directly into the default vault
 ./scripts/setup-obsidian.sh
 
-# Ou especificar caminho do vault
-./scripts/setup-obsidian.sh /caminho/para/seu/vault
+# Or specify a custom vault path
+./scripts/setup-obsidian.sh /path/to/your/vault
 ```
 
-### Método 2: Build Manual
+### Method 2: Manual Build
 
 ```bash
-# Build para pasta específica
-OUTPUT_DIR=/caminho/do/vault/.obsidian/plugins/granola-plugin-companion npm run build
+# Build to a specific folder
+OUTPUT_DIR=/path/to/vault/.obsidian/plugins/granola-plugin-companion npm run build
 
-# Ou usar os scripts predefinidos
-npm run build:obsidian    # Build para vault padrão
-npm run dev:obsidian      # Development com watch para vault padrão
+# Or use the predefined scripts
+npm run build:obsidian    # Build for default vault
+npm run dev:obsidian      # Development with watch for default vault
 ```
 
-### Método 3: Manual
+### Method 3: Fully Manual
 
-1. Copie este projeto para a pasta `.obsidian/plugins/` do seu vault
-2. Crie a pasta `granola-plugin-companion`
-3. Copie `manifest.json` e a pasta `src` para dentro
+1. Copy this project into the `.obsidian/plugins/` folder of your vault
+2. Create the folder `granola-plugin-companion`
+3. Copy `manifest.json` and the `src` folder into it
 
 ## Configuration
 
@@ -45,7 +45,7 @@ npm run dev:obsidian      # Development com watch para vault padrão
 
 ## Compatibility
 
-- Works with Obsidian Granola Sync plugin
+- Works with the Obsidian Granola Sync plugin
 - Compatible with Obsidian 0.15.0 and later
 - Desktop and mobile support
 
@@ -55,7 +55,7 @@ npm run dev:obsidian      # Development com watch para vault padrão
 # Install dependencies
 npm install
 
-# Development build com watch
+# Development build with watch
 npm run dev
 
 # Production build
@@ -64,41 +64,41 @@ npm run build
 
 ## Best Practices
 
-Este plugin segue as melhores práticas de desenvolvimento para plugins Obsidian:
+This plugin follows best practices for Obsidian plugin development:
 
-- **API Oficial**: Usa `app.plugins.getPlugin()` e `app.plugins.enabledPlugins.has()`
-- **Segurança**: Verificação segura de instalação sem depender de APIs específicas
-- **Performance**: Verificação periódica otimizada para não impactar performance
-- **Compatibilidade**: Funciona com versões antigas do Obsidian usando fallback
+- **Official API**: Uses `app.plugins.getPlugin()` and `app.plugins.enabledPlugins.has()`
+- **Security**: Safely checks installation without depending on internal/unstable APIs
+- **Performance**: Optimized periodic checks to avoid impacting performance
+- **Compatibility**: Works with older Obsidian versions using fallbacks
 
-## Documentation Oficial
+## Official Documentation
 
-Para mais informações sobre desenvolvimento de plugins Obsidian:
+For more information about Obsidian plugin development:
 
-- **Guia de Início**: https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin
-- **Anatomia do Plugin**: https://docs.obsidian.md/Plugins/Getting+started/Anatomy+of+a+plugin
-- **Fluxo de Desenvolvimento**: https://docs.obsidian.md/Plugins/Getting+started/Development+workflow
-- **Otimização de Performance**: https://docs.obsidian.md/plugins/guides/load-time
-- **Armazenamento Seguro**: https://docs.obsidian.md/plugins/guides/secret-storage
-- **Views Personalizados**: https://docs.obsidian.md/plugins/guides/bases-view
+- **Getting Started Guide**: https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin
+- **Plugin Anatomy**: https://docs.obsidian.md/Plugins/Getting+started/Anatomy+of+a+plugin
+- **Development Workflow**: https://docs.obsidian.md/Plugins/Getting+started/Development+workflow
+- **Performance Optimization**: https://docs.obsidian.md/plugins/guides/load-time
+- **Secure Storage**: https://docs.obsidian.md/plugins/guides/secret-storage
+- **Custom Views**: https://docs.obsidian.md/plugins/guides/bases-view
 
-## Estrutura de Arquivos
+## File Structure
 
-**No Projeto:**
-- `src/main.ts` - Código principal do plugin
-- `src/models/` - Modelos de dados
-- `src/services/` - Serviços de negócio
-- `src/ui/` - Componentes de interface
-- `src/utils/` - Utilitários diversos
-- `src/types/` - Definições de tipos TypeScript
-- `manifest.json` - Manifesto do plugin Obsidian
-- `scripts/setup-obsidian.sh` - Script de instalação automática
+**In the Project:**
+- `src/main.ts` - Main plugin code
+- `src/models/` - Data models
+- `src/services/` - Business logic services
+- `src/ui/` - UI components
+- `src/utils/` - Utility helpers
+- `src/types/` - TypeScript type definitions
+- `manifest.json` - Obsidian plugin manifest
+- `scripts/setup-obsidian.sh` - Automatic installation script
 
-**No Plugin Instalado:**
-- `main.js` - Plugin compilado (bundle)
-- `manifest.json` - Manifesto do plugin
+**In the Installed Plugin:**
+- `main.js` - Compiled plugin bundle
+- `manifest.json` - Plugin manifest
 
-*Nota: Apenas `main.js` e `manifest.json` são necessários para o plugin funcionar no Obsidian.*
+*Note: Only `main.js` and `manifest.json` are required for the plugin to work in Obsidian.*
 
 ## License
 

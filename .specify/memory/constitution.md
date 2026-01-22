@@ -1,50 +1,63 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version change: 0.0.0 → 1.1.0 (minor version - added Obsidian-specific principles)
+- Modified principles: All principles updated for Obsidian plugin context
+- Added sections: Obsidian Plugin Standards, Integration Testing Requirements, Plugin Release Management
+- Removed sections: N/A (restructured existing sections)
+- Templates requiring updates: 
+  ✅ .specify/templates/plan-template.md (updated constitution checks)
+  ⚠ .specify/templates/spec-template.md (needs Obsidian plugin context)
+  ⚠ .specify/templates/tasks-template.md (needs integration testing focus)
+  ⚠ .specify/templates/agent-file-template.md (project name placeholder updated)
+  ⚠ .specify/templates/checklist-template.md (no changes needed)
+- Follow-up TODOs: Update templates with Obsidian plugin specific requirements
+-->
+
+# EIS Granola Sync Companion Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Plugin Integration Architecture
+This is a companion plugin to Obsidian Granola Sync (https://github.com/tomelliot/obsidian-granola-sync). All features must integrate seamlessly with the original plugin while maintaining independence. No direct modification of original plugin code allowed.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Extension-First Development
+Every feature starts as an extension to existing Granola Sync functionality. Extensions must be optional, non-breaking, and configurable. Users must be able to disable companion features without affecting original plugin operation.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Configuration Independence
+Companion plugin must have its own configuration page and settings management. Configuration must not interfere with original plugin settings but should provide integration options where relevant.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First Development (NON-NEGOTIABLE)
+TDD mandatory: Tests written → User approved → Tests fail → Then implement. Red-Green-Refactor cycle strictly enforced for all code changes. Must test both standalone operation and integration with original plugin.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. API Integration Standards
+All interaction with original plugin must use documented APIs or safe DOM manipulation. No reliance on internal implementation details that may change. Graceful degradation required if original plugin is unavailable.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. User Experience Consistency
+Companion features must maintain UI/UX consistency with Obsidian and original plugin design patterns. Configuration pages must follow Obsidian plugin standards.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Development Standards
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### Obsidian Plugin Standards
+All development must follow Obsidian plugin development guidelines. Use TypeScript, proper plugin manifest structure, and Obsidian API patterns. Plugin must be compatible with Obsidian versions supported by original Granola Sync.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Code Quality Requirements
+All code must pass linting, formatting, and static analysis before merge. Documentation required for all public APIs. Error handling must be comprehensive and user-friendly.
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+### Integration Testing Requirements
+Must test integration scenarios with original plugin: installation order, configuration conflicts, feature interactions, and graceful degradation when original plugin is disabled or updated.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Performance & Compatibility
+Performance testing required for all user-facing features. Must not impact original plugin performance. Compatibility testing required across different Obsidian versions and operating systems.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+## Workflow & Governance
+
+### Development Process
+Feature development follows speckit workflow: specify → clarify → plan → tasks → implement. Each phase must consider integration impact on original plugin.
+
+### Review Requirements
+All changes require peer review. Constitution compliance verified in all reviews. Integration impact assessment mandatory for all features. Complex changes must be justified with simpler alternatives considered and rejected.
+
+### Plugin Release Management
+Version compatibility must be tracked against original plugin versions. Breaking changes must be clearly documented and communicated. Migration paths must be provided for major version changes.
+
+**Version**: 1.1.0 | **Ratified**: 2025-01-20 | **Last Amended**: 2025-01-20

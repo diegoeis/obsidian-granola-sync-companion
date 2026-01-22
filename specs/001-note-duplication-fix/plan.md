@@ -1,31 +1,25 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Note Duplication Fix
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-note-duplication-fix` | **Date**: 2025-01-20 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/001-note-duplication-fix/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Based on analysis of the original Obsidian Granola Sync plugin code and user requirements, the companion plugin will implement ID-based file lookup to prevent duplicate note creation while maintaining compatibility with the original plugin's sync logic.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript + Obsidian API  
+**Primary Dependencies**: Obsidian Plugin API, File System API, YAML parsing libraries  
+**Storage**: Obsidian Vault files (local file system)  
+**Testing**: Jest + Obsidian Plugin Testing Framework  
+**Target Platform**: Obsidian Desktop (Windows/Mac/Linux)  
+**Project Type**: Single Obsidian Plugin  
+**Performance Goals**: <100ms file lookup operations, <10MB memory overhead  
+**Constraints**: Must not interfere with original plugin performance, must work offline  
+**Scale/Scope**: Individual user vaults, unlimited notes
 
 ## Constitution Check
 
@@ -57,7 +51,7 @@
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/001-note-duplication-fix/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
@@ -67,6 +61,7 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -75,40 +70,39 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
 ├── models/
+│   ├── Note.ts           # Note data model with granola_id
+│   ├── SyncSettings.ts    # Companion plugin settings
+│   └── FileInfo.ts        # File information and metadata
 ├── services/
-├── cli/
-└── lib/
+│   ├── FileLookupService.ts    # ID-based file lookup service
+│   ├── ConfigurationService.ts  # Settings management
+│   └── IntegrationService.ts    # Original plugin integration
+├── ui/
+│   ├── SettingsTab.ts      # Companion plugin settings UI
+│   └── components/          # Reusable UI components
+├── utils/
+│   ├── yamlParser.ts      # Frontmatter parsing utilities
+│   └── fileUtils.ts       # File system utilities
+├── types/
+│   └── granola.ts          # Type definitions for Granola data
+└── main.ts                # Plugin entry point
 
 tests/
 ├── contract/
+│   ├── FileLookupService.test.ts
+│   └── IntegrationService.test.ts
 ├── integration/
+│   ├── duplicatePrevention.test.ts
+│   └── originalPluginCompatibility.test.ts
 └── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+    ├── FileLookupService.test.ts
+    ├── ConfigurationService.test.ts
+    └── yamlParser.test.ts
 ```
+
+**Structure Decision**: Single Obsidian plugin with TypeScript, following standard plugin structure with clear separation of concerns
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]

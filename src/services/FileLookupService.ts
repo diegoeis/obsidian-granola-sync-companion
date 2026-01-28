@@ -1,53 +1,38 @@
-import { TFile, App, TFolder } from 'obsidian';
+import { TFile, App } from 'obsidian';
+import { GranolaIndexService } from './GranolaIndexService';
 import { YamlParser } from '../utils/yamlParser';
 
 export class FileLookupService {
     private app: App;
+    private indexService: GranolaIndexService;
     private yamlParser: YamlParser;
+    private settings: any;
 
-    constructor(app: App) {
+    constructor(app: App, indexService: GranolaIndexService) {
         this.app = app;
+        this.indexService = indexService;
         this.yamlParser = new YamlParser(app);
     }
 
     /**
-     * Procura arquivo por granola_id em todo o vault
+     * Procura arquivo por granola_id usando o índice - O(1)
      */
     async findFileByGranolaId(granolaId: string): Promise<TFile | null> {
-        const allFiles = this.app.vault.getFiles();
-        
-        for (const file of allFiles) {
-            const fileGranolaId = this.yamlParser.getGranolaId(file);
-            if (fileGranolaId === granolaId) {
-                return file;
-            }
-        }
-        
-        return null;
+        return this.indexService.findByGranolaId(granolaId);
     }
 
     /**
-     * Verifica se já existe arquivo com este granola_id
+     * Verifica se já existe arquivo com este granola_id - O(1)
      */
     async fileExistsWithGranolaId(granolaId: string): Promise<boolean> {
-        const existingFile = await this.findFileByGranolaId(granolaId);
-        return existingFile !== null;
+        return this.indexService.hasGranolaId(granolaId);
     }
 
     /**
      * Lista todos os arquivos com granola_id
      */
     async getAllGranolaFiles(): Promise<TFile[]> {
-        const allFiles = this.app.vault.getFiles();
-        const granolaFiles: TFile[] = [];
-        
-        for (const file of allFiles) {
-            if (this.yamlParser.hasGranolaId(file)) {
-                granolaFiles.push(file);
-            }
-        }
-        
-        return granolaFiles;
+        return this.indexService.getAllGranolaFiles();
     }
 
     /**
@@ -55,39 +40,12 @@ export class FileLookupService {
      * Ignora transcripts que compartilham granola_id com suas notas relacionadas
      */
     async getDuplicateFiles(): Promise<{ granolaId: string; files: TFile[] }[]> {
-        const granolaFiles = await this.getAllGranolaFiles();
-        const granolaIdMap = new Map<string, TFile[]>();
-
-        // Agrupa todos os arquivos por granola_id (incluindo transcripts)
-        for (const file of granolaFiles) {
-            const granolaId = this.yamlParser.getGranolaId(file);
-            if (granolaId) {
-                if (!granolaIdMap.has(granolaId)) {
-                    granolaIdMap.set(granolaId, []);
-                }
-                granolaIdMap.get(granolaId)!.push(file);
-            }
-        }
-
-        const duplicates: { granolaId: string; files: TFile[] }[] = [];
-
-        for (const [granolaId, files] of granolaIdMap) {
-            // Filtra transcripts do grupo
-            const nonTranscriptFiles = files.filter(
-                file => !file.name.toLowerCase().includes('transcript')
-            );
-
-            // Só considera duplicata se houver mais de 1 arquivo que NÃO seja transcript
-            if (nonTranscriptFiles.length > 1) {
-                duplicates.push({ granolaId, files: nonTranscriptFiles });
-            }
-        }
-
-        return duplicates;
+        return this.indexService.getDuplicateGroups();
     }
 
     /**
      * Intercepta criação de arquivo para prevenir duplicatas
+     * Agora usa índice O(1) em vez de loop O(n)
      */
     async interceptFileCreation(filePath: string, content: string): Promise<{ shouldCreate: boolean; alternativePath?: string }> {
         if (!this.settings?.duplicatePreventionEnabled) {
@@ -101,7 +59,8 @@ export class FileLookupService {
             return { shouldCreate: true };
         }
 
-        const existingFile = await this.findFileByGranolaId(granolaId);
+        // Busca O(1) no índice
+        const existingFile = this.indexService.findByGranolaId(granolaId);
         if (!existingFile) {
             return { shouldCreate: true };
         }
@@ -113,14 +72,12 @@ export class FileLookupService {
             console.log(`Attempted new file: ${filePath}`);
         }
 
-        return { 
-            shouldCreate: false, 
-            alternativePath: existingFile.path 
+        return {
+            shouldCreate: false,
+            alternativePath: existingFile.path
         };
     }
 
-    private settings: any;
-    
     setSettings(settings: any) {
         this.settings = settings;
     }

@@ -2,10 +2,15 @@
 
 A companion plugin for Obsidian Granola Sync that prevents note duplication and extends functionality.
 
+> 📖 **[Ver Índice Completo da Documentação](./DOCS-INDEX.md)** - Guia de navegação de todos os documentos disponíveis
+
 ## Features
 
 - **Duplicate Prevention**: Prevents creation of duplicate files when synced notes are modified
-- **Configurable Settings**: User can enable/disable duplicate prevention
+- **Duplicate Cleanup**: Remove duplicate notes created by Obsidian's conflict resolution
+- **Smart Detection**: Only removes files with granola_id, protecting your personal notes
+- **Statistics Dashboard**: View duplicate file statistics
+- **Configurable Settings**: Enable/disable features as needed
 - **Debug Mode**: Enable debug logging for troubleshooting
 - **Non-Intrusive**: Works alongside the original Granola Sync plugin without conflicts
 
@@ -40,8 +45,17 @@ npm run dev:obsidian      # Development with watch for default vault
 
 ## Configuration
 
+Go to **Settings → Community Plugins → Granola Plugin Companion**
+
+### Settings
+
 - **Enable Duplicate Prevention**: Toggle to prevent duplicate file creation
 - **Debug Mode**: Enable debug logging for troubleshooting
+
+### Actions
+
+- **Show Duplicate Stats**: View statistics about duplicate files
+- **Remove Duplicates**: Clean up duplicate notes created by Obsidian (with confirmation dialog)
 
 ## Compatibility
 
@@ -99,6 +113,20 @@ For more information about Obsidian plugin development:
 - `manifest.json` - Plugin manifest
 
 *Note: Only `main.js` and `manifest.json` are required for the plugin to work in Obsidian.*
+
+## Documentation
+
+### For Developers
+- **[CONTEXT.md](./CONTEXT.md)** - Contexto completo do projeto, arquitetura e conceitos
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Guia de desenvolvimento, workflows e padrões
+- **[GRANOLA-SYNC-REFERENCE.md](./GRANOLA-SYNC-REFERENCE.md)** - Referência sobre o plugin Granola Sync original
+- **[QUICK-REFERENCE.md](./QUICK-REFERENCE.md)** - Comandos, snippets e referências rápidas
+
+### Quick Start para Desenvolvimento
+1. Ler `CONTEXT.md` para entender o projeto
+2. Seguir `DEVELOPMENT.md` para setup
+3. Usar `QUICK-REFERENCE.md` como cheat sheet
+4. Consultar `GRANOLA-SYNC-REFERENCE.md` para entender o plugin original
 
 ## License
 

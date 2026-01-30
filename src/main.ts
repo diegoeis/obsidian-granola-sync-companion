@@ -17,6 +17,7 @@ export default class GranolaPluginCompanion extends Plugin {
     integrationService: IntegrationService;
     pluginDetector: PluginDetector;
     private granolaSyncAvailable: boolean = false;
+    private ribbonIconEl: HTMLElement | null = null;
 
     // Event refs para cleanup
     private eventRefs: any[] = [];
@@ -63,11 +64,6 @@ export default class GranolaPluginCompanion extends Plugin {
         this.integrationService = new IntegrationService(this.app);
         await this.integrationService.initialize(this.settings);
 
-        // Add a ribbon icon
-        this.addRibbonIcon('dice', 'Granola Companion', (evt: MouseEvent) => {
-            this.showDuplicateStats();
-        });
-
         // Add commands
         this.addCommand({
             id: 'open-granola-companion-settings',
@@ -90,6 +86,14 @@ export default class GranolaPluginCompanion extends Plugin {
             name: 'Refresh Granola Sync Status',
             callback: () => {
                 this.refreshGranolaSyncStatus();
+            }
+        });
+
+        this.addCommand({
+            id: 'remove-duplicate-notes',
+            name: 'Remove Duplicate Granola Notes',
+            callback: () => {
+                this.removeDuplicateNotes();
             }
         });
 
@@ -173,13 +177,6 @@ export default class GranolaPluginCompanion extends Plugin {
                 this.integrationService = new IntegrationService(this.app);
             }
             await this.integrationService.initialize(this.settings);
-
-            // Adicionar UI completa se ainda não presente
-            if (!(this as any).ribbonIconEl) {
-                this.addRibbonIcon('dice', 'Granola Companion', (evt: MouseEvent) => {
-                    this.showDuplicateStats();
-                });
-            }
         }
 
         // Transição para unavailable
@@ -232,23 +229,193 @@ export default class GranolaPluginCompanion extends Plugin {
             return;
         }
 
+        // Conta duplicatas por padrão de timestamp (as que o botão pode remover)
+        const duplicatePattern = /-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.md$/;
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const timestampDuplicates: any[] = [];
+
+        for (const file of allFiles) {
+            if (duplicatePattern.test(file.path)) {
+                const cache = this.app.metadataCache.getFileCache(file);
+                const granolaId = cache?.frontmatter?.granola_id;
+                if (granolaId) {
+                    timestampDuplicates.push(file);
+                }
+            }
+        }
+
+        // Estatísticas gerais (inclui notas que compartilham granola_id)
         const stats = await this.integrationService.getDuplicateStats();
 
-        if (stats.duplicateGroups === 0) {
+        if (timestampDuplicates.length === 0 && stats.duplicateGroups === 0) {
             this.showNotice('✅ No duplicate files found!', 'success');
             return;
         }
 
         const message = `
 📊 Duplicate Statistics:
-• Groups: ${stats.duplicateGroups}
-• Duplicate files: ${stats.totalDuplicateFiles}
 
-Recent duplicates:
-${stats.duplicates.slice(0, 5).map(d => `• ${d.granolaId}: ${d.count} files`).join('\n')}
+🗑️ Removable Duplicates (with timestamp):
+• ${timestampDuplicates.length} file(s) can be cleaned up
+
+📁 Granola ID Groups:
+• ${stats.duplicateGroups} group(s) with shared IDs
+• ${stats.totalDuplicateFiles} total file(s)
+
+${timestampDuplicates.length > 0 ? '\n💡 Use "Remove Duplicates" to clean timestamp duplicates' : ''}
         `;
 
         this.showNotice(message.trim(), 'info');
+    }
+
+    /**
+     * Remove arquivos duplicados criados pelo Granola Sync
+     * Padrão de duplicata: nome-DATA-DATA_HORA.md
+     * Exemplo: sync - Diego e Marcelo - 2026-01-30-2026-01-30_10-24-29.md
+     */
+    async removeDuplicateNotes() {
+        if (!this.integrationService) {
+            this.showNotice('⚠️ Granola Sync not available', 'warning');
+            return;
+        }
+
+        // Padrão regex para detectar duplicatas criadas pelo Obsidian
+        // Quando um arquivo já existe, o Obsidian adiciona: -YYYY-MM-DD_HH-MM-SS.md
+        // Exemplo: sync - Diego e Marcelo - 2026-01-30-2026-01-30_10-24-29.md
+        const duplicatePattern = /-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.md$/;
+
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const duplicates: Array<any> = [];
+
+        // Identifica arquivos duplicados pelo padrão de nome E que têm granola_id
+        for (const file of allFiles) {
+            // Primeiro verifica o padrão de nome
+            if (duplicatePattern.test(file.path)) {
+                // Depois verifica se tem granola_id (só remove se for arquivo do Granola)
+                const cache = this.app.metadataCache.getFileCache(file);
+                const granolaId = cache?.frontmatter?.granola_id;
+
+                if (granolaId) {
+                    duplicates.push(file);
+
+                    if (this.settings.debugMode) {
+                        console.log(`Granola Companion: Found duplicate - ${file.path} (granola_id: ${granolaId})`);
+                    }
+                } else if (this.settings.debugMode) {
+                    console.log(`Granola Companion: Skipping ${file.path} - matches pattern but no granola_id`);
+                }
+            }
+        }
+
+        if (duplicates.length === 0) {
+            this.showNotice('✅ No duplicate files found to remove!', 'success');
+            return;
+        }
+
+        // Mostra confirmação antes de deletar
+        const confirmMessage = `Found ${duplicates.length} duplicate file(s):\n\n${duplicates.slice(0, 5).map(f => `• ${f.basename}`).join('\n')}${duplicates.length > 5 ? `\n• ... and ${duplicates.length - 5} more` : ''}\n\nDelete these files?`;
+
+        // Cria modal de confirmação
+        const confirmed = await this.showConfirmDialog(
+            'Remove Duplicate Notes',
+            confirmMessage,
+            duplicates.length
+        );
+
+        if (!confirmed) {
+            this.showNotice('Deletion cancelled', 'info');
+            return;
+        }
+
+        // Remove os arquivos
+        let deletedCount = 0;
+        let errorCount = 0;
+
+        for (const file of duplicates) {
+            try {
+                await this.app.vault.delete(file);
+                deletedCount++;
+
+                if (this.settings.debugMode) {
+                    console.log(`Granola Companion: Deleted duplicate - ${file.path}`);
+                }
+            } catch (error) {
+                errorCount++;
+                console.error(`Granola Companion: Error deleting ${file.path}:`, error);
+            }
+        }
+
+        // Mostra resultado
+        if (errorCount === 0) {
+            this.showNotice(`✅ Successfully deleted ${deletedCount} duplicate file(s)!`, 'success');
+        } else {
+            this.showNotice(`⚠️ Deleted ${deletedCount} file(s), ${errorCount} error(s)`, 'warning');
+        }
+    }
+
+    /**
+     * Mostra diálogo de confirmação customizado
+     */
+    private showConfirmDialog(title: string, message: string, fileCount: number): Promise<boolean> {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-container mod-dim';
+            modal.style.cssText = 'display: flex; align-items: center; justify-content: center;';
+
+            const modalBg = document.createElement('div');
+            modalBg.className = 'modal-bg';
+            modalBg.style.cssText = 'opacity: 0.85;';
+            modalBg.onclick = () => {
+                document.body.removeChild(modal);
+                resolve(false);
+            };
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal';
+            modalContent.style.cssText = 'padding: 20px; max-width: 500px; background: var(--background-primary); border-radius: 8px;';
+
+            modalContent.innerHTML = `
+                <div class="modal-title" style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-error);">
+                    ⚠️ ${title}
+                </div>
+                <div class="modal-content" style="white-space: pre-wrap; margin-bottom: 20px; color: var(--text-normal);">
+                    ${message}
+                </div>
+                <div class="modal-button-container" style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="mod-cta" id="confirm-delete" style="background-color: var(--interactive-accent); color: white;">
+                        Delete ${fileCount} file${fileCount > 1 ? 's' : ''}
+                    </button>
+                    <button id="cancel-delete">Cancel</button>
+                </div>
+            `;
+
+            modal.appendChild(modalBg);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            const confirmBtn = modalContent.querySelector('#confirm-delete') as HTMLButtonElement;
+            const cancelBtn = modalContent.querySelector('#cancel-delete') as HTMLButtonElement;
+
+            confirmBtn.onclick = () => {
+                document.body.removeChild(modal);
+                resolve(true);
+            };
+
+            cancelBtn.onclick = () => {
+                document.body.removeChild(modal);
+                resolve(false);
+            };
+
+            // ESC para fechar
+            const handleEscape = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', handleEscape);
+                    resolve(false);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+        });
     }
 
     private showNotice(message: string, type: 'info' | 'success' | 'warning' = 'info') {
@@ -258,7 +425,6 @@ ${stats.duplicates.slice(0, 5).map(d => `• ${d.granolaId}: ${d.count} files`).
             padding: 10px;
             border-left: 4px solid ${type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#2196f3'};
             margin: 10px 0;
-            background: ${type === 'success' ? '#f1f8e9' : type === 'warning' ? '#fff3e0' : '#e3f2fd'};
         `;
         container.innerHTML = `<strong>Granola Companion:</strong> ${message}`;
         fragment.appendChild(container);
@@ -363,7 +529,7 @@ class GranolaCompanionSettingTab extends PluginSettingTab {
         containerEl.createEl('div', { cls: 'setting-item' }, (div) => {
             div.createEl('div', { cls: 'setting-item-info' }, (info) => {
                 info.createEl('div', { text: 'Statistics' });
-                info.createEl('div', { cls: 'setting-item-description', text: 'View duplicate file statistics and cleanup options' });
+                info.createEl('div', { cls: 'setting-item-description', text: 'View duplicate file statistics' });
             });
 
             div.createEl('div', { cls: 'setting-item-control' }, (control) => {
@@ -374,6 +540,25 @@ class GranolaCompanionSettingTab extends PluginSettingTab {
 
                 button.onclick = () => {
                     this.plugin.showDuplicateStats();
+                };
+            });
+        });
+
+        // Adiciona botão para remover duplicatas
+        containerEl.createEl('div', { cls: 'setting-item' }, (div) => {
+            div.createEl('div', { cls: 'setting-item-info' }, (info) => {
+                info.createEl('div', { text: 'Cleanup' });
+                info.createEl('div', { cls: 'setting-item-description', text: 'Remove duplicate Granola notes created by the Obsidian conflict resolution' });
+            });
+
+            div.createEl('div', { cls: 'setting-item-control' }, (control) => {
+                const button = control.createEl('button', {
+                    cls: 'mod-warning',
+                    text: 'Remove Duplicates'
+                });
+
+                button.onclick = async () => {
+                    await this.plugin.removeDuplicateNotes();
                 };
             });
         });

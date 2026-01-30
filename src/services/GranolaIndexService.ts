@@ -8,8 +8,8 @@ import { App, TFile, Events, TAbstractFile } from 'obsidian';
 export class GranolaIndexService extends Events {
     private app: App;
 
-    // Cache principal: granola_id -> TFile
-    private granolaIdIndex: Map<string, TFile> = new Map();
+    // Cache principal: granola_id -> TFile[] (múltiplos arquivos podem ter o mesmo granola_id)
+    private granolaIdIndex: Map<string, TFile[]> = new Map();
 
     // Cache reverso: file.path -> granola_id (para remoções rápidas)
     private pathToGranolaId: Map<string, string> = new Map();
@@ -65,6 +65,7 @@ export class GranolaIndexService extends Events {
 
     /**
      * Indexa um único arquivo
+     * Suporta múltiplos arquivos com o mesmo granola_id (ex: nota + transcript)
      */
     private indexFile(file: TFile): void {
         if (file.extension !== 'md') return;
@@ -75,13 +76,32 @@ export class GranolaIndexService extends Events {
         // Remove entrada antiga se existir
         const oldGranolaId = this.pathToGranolaId.get(file.path);
         if (oldGranolaId) {
-            this.granolaIdIndex.delete(oldGranolaId);
+            const existingFiles = this.granolaIdIndex.get(oldGranolaId);
+            if (existingFiles) {
+                const filtered = existingFiles.filter(f => f.path !== file.path);
+                if (filtered.length > 0) {
+                    this.granolaIdIndex.set(oldGranolaId, filtered);
+                } else {
+                    this.granolaIdIndex.delete(oldGranolaId);
+                }
+            }
             this.pathToGranolaId.delete(file.path);
         }
 
         // Adiciona nova entrada se tiver granola_id
         if (granolaId) {
-            this.granolaIdIndex.set(granolaId, file);
+            const existingFiles = this.granolaIdIndex.get(granolaId) || [];
+            const wasAlreadyIndexed = existingFiles.some(f => f.path === file.path);
+
+            // Evita duplicatas no array
+            if (!wasAlreadyIndexed) {
+                existingFiles.push(file);
+                if (this.debugMode) {
+                    console.log(`Granola Index: Added to index - ${file.path} (granola_id: ${granolaId})`);
+                    console.log(`  Total files with this ID: ${existingFiles.length}`);
+                }
+            }
+            this.granolaIdIndex.set(granolaId, existingFiles);
             this.pathToGranolaId.set(file.path, granolaId);
 
             // Emite evento para listeners externos
@@ -150,10 +170,16 @@ export class GranolaIndexService extends Events {
         // Este evento dispara quando o frontmatter de um arquivo muda
         const cacheRef = this.app.metadataCache.on('changed', (file: TFile) => {
             if (file.extension === 'md') {
-                this.indexFile(file);
+                const cache = this.app.metadataCache.getFileCache(file);
+                const granolaId = cache?.frontmatter?.granola_id;
 
-                if (this.debugMode) {
-                    console.log(`Granola Index: Metadata changed - ${file.path}`);
+                // Só processa e loga se o arquivo tiver granola_id
+                if (granolaId) {
+                    this.indexFile(file);
+
+                    if (this.debugMode) {
+                        console.log(`Granola Index: Metadata changed - ${file.path}`);
+                    }
                 }
             }
         });
@@ -162,23 +188,38 @@ export class GranolaIndexService extends Events {
 
     /**
      * Busca arquivo por granola_id - O(1) em vez de O(n)
+     * Retorna o primeiro arquivo encontrado (para compatibilidade)
      */
     findByGranolaId(granolaId: string): TFile | null {
-        return this.granolaIdIndex.get(granolaId) || null;
+        const files = this.granolaIdIndex.get(granolaId);
+        return files && files.length > 0 ? files[0] : null;
+    }
+
+    /**
+     * Busca TODOS os arquivos com um granola_id - O(1)
+     * Usado para verificar conflitos entre notas e transcripts
+     */
+    findAllByGranolaId(granolaId: string): TFile[] {
+        return this.granolaIdIndex.get(granolaId) || [];
     }
 
     /**
      * Verifica se existe arquivo com granola_id - O(1)
      */
     hasGranolaId(granolaId: string): boolean {
-        return this.granolaIdIndex.has(granolaId);
+        const files = this.granolaIdIndex.get(granolaId);
+        return files !== undefined && files.length > 0;
     }
 
     /**
      * Retorna todos os arquivos Granola indexados
      */
     getAllGranolaFiles(): TFile[] {
-        return Array.from(this.granolaIdIndex.values());
+        const allFiles: TFile[] = [];
+        for (const files of this.granolaIdIndex.values()) {
+            allFiles.push(...files);
+        }
+        return allFiles;
     }
 
     /**

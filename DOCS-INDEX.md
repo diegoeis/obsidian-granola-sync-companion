@@ -130,7 +130,30 @@ Este projeto contém documentação completa para facilitar o desenvolvimento do
 
 ---
 
-### 6. [DOCS-INDEX.md](./DOCS-INDEX.md) _(este arquivo)_
+### 6. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md)
+**O que é**: Referência rápida de APIs nativas do Obsidian
+**Quando usar**:
+- Implementar modal, notice, menu, etc
+- Trabalhar com arquivos e metadados
+- Registrar eventos e intervalos
+- Buscar snippet de API nativa
+
+**Conteúdo**:
+- 🎨 UI Components (Modal, Notice, Setting, Menu)
+- 📁 File Operations (Vault API, MetadataCache)
+- 🎯 Event Handling (registerEvent, registerInterval)
+- 🔧 Utilities (YAML, Markdown rendering)
+- ❌ Anti-patterns (o que NÃO fazer)
+
+**Destaques**:
+- Exemplos práticos de cada API
+- Comparação entre ✅ correto e ❌ incorreto
+- CSS classes úteis do Obsidian
+- Links para documentação oficial
+
+---
+
+### 7. [DOCS-INDEX.md](./DOCS-INDEX.md) _(este arquivo)_
 **O que é**: Índice de navegação da documentação
 **Quando usar**:
 - Não saber qual documento ler
@@ -145,12 +168,13 @@ Este projeto contém documentação completa para facilitar o desenvolvimento do
 1. Leia [README.md](./README.md) primeiro
 2. Depois [CONTEXT.md](./CONTEXT.md) completo
 3. Configure ambiente com [DEVELOPMENT.md](./DEVELOPMENT.md) → Início Rápido
-4. Mantenha [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) aberto para consultas
+4. Mantenha [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) e [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) abertos para consultas
 
 ### "Quero adicionar uma nova funcionalidade"
 1. [DEVELOPMENT.md](./DEVELOPMENT.md) → Workflow de Desenvolvimento → Adicionar Nova Funcionalidade
-2. [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) → Snippets Comuns
-3. [CONTEXT.md](./CONTEXT.md) → Padrões de Código (para seguir padrões existentes)
+2. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) → Buscar API nativa para usar
+3. [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) → Snippets Comuns
+4. [CONTEXT.md](./CONTEXT.md) → Padrões de Código (para seguir padrões existentes)
 
 ### "Encontrei um bug"
 1. [DEVELOPMENT.md](./DEVELOPMENT.md) → Debugging Tips
@@ -305,13 +329,14 @@ Esta documentação deve ser:
 
 ## 📊 Estatísticas da Documentação
 
-- **Total de documentos**: 6
-- **Linhas de documentação**: ~2500+
-- **Tópicos cobertos**: 50+
-- **Exemplos de código**: 100+
-- **Comandos e snippets**: 80+
+- **Total de documentos**: 7
+- **Linhas de documentação**: ~3000+
+- **Tópicos cobertos**: 60+
+- **Exemplos de código**: 120+
+- **Comandos e snippets**: 90+
+- **APIs documentadas**: 15+
 
 ---
 
-**Última atualização**: 2024-01-22
-**Versão da documentação**: 1.0.0
+**Última atualização**: 2026-01-30
+**Versão da documentação**: 1.1.0

@@ -117,10 +117,10 @@ For more information about Obsidian plugin development:
 ## Documentation
 
 ### For Developers
-- **[CONTEXT.md](./CONTEXT.md)** - Contexto completo do projeto, arquitetura e conceitos
-- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Guia de desenvolvimento, workflows e padrões
-- **[GRANOLA-SYNC-REFERENCE.md](./GRANOLA-SYNC-REFERENCE.md)** - Referência sobre o plugin Granola Sync original
-- **[QUICK-REFERENCE.md](./QUICK-REFERENCE.md)** - Comandos, snippets e referências rápidas
+- **[CONTEXT.md](./.claude/docs/CONTEXT.md)** - Contexto completo do projeto, arquitetura e conceitos
+- **[DEVELOPMENT.md](./.claude/docs/DEVELOPMENT.md)** - Guia de desenvolvimento, workflows e padrões
+- **[GRANOLA-SYNC-REFERENCE.md](./.claude/docs/GRANOLA-SYNC-REFERENCE.md)** - Referência sobre o plugin Granola Sync original
+- **[QUICK-REFERENCE.md](./.claude/docs/QUICK-REFERENCE.md)** - Comandos, snippets e referências rápidas
 
 ### Quick Start para Desenvolvimento
 1. Ler `CONTEXT.md` para entender o projeto

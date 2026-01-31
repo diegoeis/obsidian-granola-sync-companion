@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, Modal } from 'obsidian';
 import { IntegrationService } from './services/IntegrationService';
 import { PluginDetector, GranolaSyncInfo } from './utils/pluginDetector';
 
@@ -354,67 +354,18 @@ ${timestampDuplicates.length > 0 ? '\n💡 Use "Remove Duplicates" to clean time
     }
 
     /**
-     * Mostra diálogo de confirmação customizado
+     * Mostra diálogo de confirmação usando Modal nativa do Obsidian
      */
     private showConfirmDialog(title: string, message: string, fileCount: number): Promise<boolean> {
         return new Promise((resolve) => {
-            const modal = document.createElement('div');
-            modal.className = 'modal-container mod-dim';
-            modal.style.cssText = 'display: flex; align-items: center; justify-content: center;';
-
-            const modalBg = document.createElement('div');
-            modalBg.className = 'modal-bg';
-            modalBg.style.cssText = 'opacity: 0.85;';
-            modalBg.onclick = () => {
-                document.body.removeChild(modal);
-                resolve(false);
-            };
-
-            const modalContent = document.createElement('div');
-            modalContent.className = 'modal';
-            modalContent.style.cssText = 'padding: 20px; max-width: 500px; background: var(--background-primary); border-radius: 8px;';
-
-            modalContent.innerHTML = `
-                <div class="modal-title" style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-error);">
-                    ⚠️ ${title}
-                </div>
-                <div class="modal-content" style="white-space: pre-wrap; margin-bottom: 20px; color: var(--text-normal);">
-                    ${message}
-                </div>
-                <div class="modal-button-container" style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="mod-cta" id="confirm-delete" style="background-color: var(--interactive-accent); color: white;">
-                        Delete ${fileCount} file${fileCount > 1 ? 's' : ''}
-                    </button>
-                    <button id="cancel-delete">Cancel</button>
-                </div>
-            `;
-
-            modal.appendChild(modalBg);
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            const confirmBtn = modalContent.querySelector('#confirm-delete') as HTMLButtonElement;
-            const cancelBtn = modalContent.querySelector('#cancel-delete') as HTMLButtonElement;
-
-            confirmBtn.onclick = () => {
-                document.body.removeChild(modal);
-                resolve(true);
-            };
-
-            cancelBtn.onclick = () => {
-                document.body.removeChild(modal);
-                resolve(false);
-            };
-
-            // ESC para fechar
-            const handleEscape = (e: KeyboardEvent) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(modal);
-                    document.removeEventListener('keydown', handleEscape);
-                    resolve(false);
-                }
-            };
-            document.addEventListener('keydown', handleEscape);
+            const modal = new ConfirmDeleteModal(
+                this.app,
+                title,
+                message,
+                fileCount,
+                (result) => resolve(result)
+            );
+            modal.open();
         });
     }
 
@@ -469,6 +420,78 @@ ${timestampDuplicates.length > 0 ? '\n💡 Use "Remove Duplicates" to clean time
         container.innerHTML = `<strong>Granola Companion:</strong> ${message}`;
         fragment.appendChild(container);
         new Notice(fragment, 8000);
+    }
+}
+
+/**
+ * Modal de confirmação para deletar arquivos duplicados
+ * Usa a API nativa do Obsidian para gerenciar lifecycle, ESC, etc.
+ */
+class ConfirmDeleteModal extends Modal {
+    private onSubmit: (result: boolean) => void;
+    private title: string;
+    private message: string;
+    private fileCount: number;
+
+    constructor(
+        app: App,
+        title: string,
+        message: string,
+        fileCount: number,
+        onSubmit: (result: boolean) => void
+    ) {
+        super(app);
+        this.title = title;
+        this.message = message;
+        this.fileCount = fileCount;
+        this.onSubmit = onSubmit;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+
+        // Título com ícone de aviso
+        contentEl.createEl('h2', {
+            text: `⚠️ ${this.title}`,
+            cls: 'modal-title'
+        });
+
+        // Mensagem
+        contentEl.createEl('p', {
+            text: this.message,
+            cls: 'modal-content'
+        });
+
+        // Container de botões
+        const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.marginTop = '20px';
+
+        // Botão de confirmar
+        const confirmBtn = buttonContainer.createEl('button', {
+            text: `Delete ${this.fileCount} file${this.fileCount > 1 ? 's' : ''}`,
+            cls: 'mod-warning'
+        });
+        confirmBtn.addEventListener('click', () => {
+            this.close();
+            this.onSubmit(true);
+        });
+
+        // Botão de cancelar
+        const cancelBtn = buttonContainer.createEl('button', {
+            text: 'Cancel'
+        });
+        cancelBtn.addEventListener('click', () => {
+            this.close();
+            this.onSubmit(false);
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
     }
 }
 

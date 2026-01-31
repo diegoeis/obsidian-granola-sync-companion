@@ -2,13 +2,13 @@
 
 ## Visão Geral
 
-O **Obsidian Granola Sync** é o plugin original desenvolvido pela Granola que sincroniza notas de reuniões do aplicativo Granola para o Obsidian.
+O **Obsidian Granola Sync** é o plugin original desenvolvido pelo Tom Elliott, [aberto no Github](https://github.com/tomelliott/obsidian-granola-sync), que sincroniza notas de reuniões do aplicativo Granola para o Obsidian.
 
 ### Informações Básicas
 - **Plugin ID**: `granola-sync`
 - **Tipo**: Community Plugin
-- **Desenvolvedor**: Granola
-- **Função**: Sincronizar reuniões do Granola automaticamente para Obsidian
+- **Desenvolvedor**: Tom Elliott
+- **Função**: Este plugin permite que você sincronize suas notas e transcrições do Granola (https://granola.ai) diretamente em seu cofre Obsidian. Ele busca documentos do Granola, converte-os do formato ProseMirror JSON para Markdown e os salva como arquivos .md.
 
 ## Como o Granola Sync Funciona
 
@@ -22,16 +22,15 @@ O **Obsidian Granola Sync** é o plugin original desenvolvido pela Granola que s
 #### Nota de Reunião
 ```markdown
 ---
-granola_id: abc123-def456-789
-title: Weekly Team Meeting
-date: 2024-01-22
-participants:
+granola_id: doc-123
+title: "Meeting Title"
+type: note
+created: 2024-01-15T10:00:00Z
+updated: 2024-01-15T12:00:00Z
+attendees:
   - John Doe
   - Jane Smith
-meeting_url: https://granola.ai/meetings/abc123
-tags:
-  - meeting
-  - team
+transcript: "[[Transcripts/Meeting Title-transcript.md]]"
 ---
 
 # Weekly Team Meeting
@@ -50,10 +49,15 @@ tags:
 #### Transcript (opcional)
 ```markdown
 ---
-granola_id: abc123-def456-789
-title: Weekly Team Meeting - Transcript
-date: 2024-01-22
+granola_id: doc-123
+title: "Meeting Title - Transcript"
 type: transcript
+created: 2024-01-15T10:00:00Z
+updated: 2024-01-15T12:00:00Z
+attendees:
+  - John Doe
+  - Jane Smith
+note: "[[Granola/Meeting Title.md]]"
 ---
 
 # Transcript

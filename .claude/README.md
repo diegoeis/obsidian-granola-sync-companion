@@ -6,7 +6,7 @@ This directory contains documentation and context files to help Claude understan
 
 ```
 .claude/
-├── docs/               # Complete project documentation
+├── docs/                      # Complete project documentation
 │   ├── DOCS-INDEX.md          # Documentation navigation guide
 │   ├── CONTEXT.md             # Project architecture & concepts
 │   ├── DEVELOPMENT.md         # Development guide & best practices
@@ -14,6 +14,11 @@ This directory contains documentation and context files to help Claude understan
 │   ├── QUICK-REFERENCE.md     # Commands & snippets cheat sheet
 │   ├── GRANOLA-SYNC-REFERENCE.md  # Granola Sync plugin reference
 │   └── CHANGELOG.md           # Version history
+├── specs/                     # Feature specifications and plans
+│   └── 001-note-duplication-fix/  # Initial feature spec
+│       ├── spec.md            # Feature specification
+│       ├── plan.md            # Implementation plan
+│       └── checklists/        # Task checklists
 └── settings.local.json        # Claude Code local settings
 ```
 
@@ -25,12 +30,17 @@ All documentation has been moved to `.claude/docs/` for better organization and 
 👉 **[DOCS-INDEX.md](./docs/DOCS-INDEX.md)** - Complete navigation guide to all documentation
 
 ### Quick Links
+
+**Documentation:**
 - 🎯 [Project Context](./docs/CONTEXT.md) - Architecture & concepts
 - 🚀 [Development Guide](./docs/DEVELOPMENT.md) - How to develop
 - 🔧 [Obsidian APIs](./docs/OBSIDIAN-APIS.md) - Native APIs reference
 - ⚡ [Quick Reference](./docs/QUICK-REFERENCE.md) - Commands & snippets
 - 📦 [Granola Sync](./docs/GRANOLA-SYNC-REFERENCE.md) - Original plugin info
 - 📝 [Changelog](./docs/CHANGELOG.md) - Version history
+
+**Specifications:**
+- 📋 [Specs Directory](./specs/) - Feature specifications and implementation plans
 
 ## 🤖 For Claude
 

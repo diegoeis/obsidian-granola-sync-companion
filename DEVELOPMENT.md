@@ -107,27 +107,47 @@ this.addCommand({
 
 ### 3. Criar Nova View/Modal
 
+**✅ Use sempre a API nativa `Modal` do Obsidian**
+
 ```typescript
 import { Modal, App } from 'obsidian';
 
 class CustomModal extends Modal {
-    constructor(app: App, private data: any) {
+    private data: any;
+
+    constructor(app: App, data: any) {
         super(app);
+        this.data = data;
     }
 
     onOpen() {
         const { contentEl } = this;
+
+        // Título
         contentEl.createEl('h2', { text: 'Modal Title' });
 
-        // Adicionar conteúdo
+        // Conteúdo
         contentEl.createEl('p', { text: 'Content here' });
 
         // Botões
         const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.marginTop = '20px';
 
+        // Botão de ação principal (destaque)
         buttonContainer.createEl('button', {
             text: 'Confirm',
-            cls: 'mod-cta'
+            cls: 'mod-cta'  // Classe do Obsidian para botões de ação
+        }).addEventListener('click', () => {
+            this.close();
+            // Ação aqui
+        });
+
+        // Botão de cancelar
+        buttonContainer.createEl('button', {
+            text: 'Cancel'
         }).addEventListener('click', () => {
             this.close();
         });
@@ -135,7 +155,7 @@ class CustomModal extends Modal {
 
     onClose() {
         const { contentEl } = this;
-        contentEl.empty();
+        contentEl.empty(); // Limpa o conteúdo (sempre faça isso)
     }
 }
 
@@ -143,12 +163,19 @@ class CustomModal extends Modal {
 new CustomModal(this.app, data).open();
 ```
 
+**Classes CSS úteis do Obsidian:**
+- `mod-cta`: Botão de call-to-action (azul/destaque)
+- `mod-warning`: Botão de ação destrutiva (vermelho)
+- `modal-button-container`: Container para botões
+
 ### 4. Trabalhar com Arquivos
+
+**✅ Use sempre a API `vault` do Obsidian**
 
 ```typescript
 // Listar arquivos
 const files = this.app.vault.getFiles();
-const mdFiles = files.filter(f => f.extension === 'md');
+const mdFiles = this.app.vault.getMarkdownFiles(); // Mais eficiente!
 
 // Ler arquivo
 const content = await this.app.vault.read(file);
@@ -162,42 +189,286 @@ await this.app.vault.delete(file);
 
 // Renomear/mover
 await this.app.vault.rename(file, 'new/path.md');
+
+// Verificar se arquivo existe
+const fileExists = this.app.vault.getAbstractFileByPath('path/to/file.md');
+
+// Obter pasta
+const folder = this.app.vault.getAbstractFileByPath('path/to/folder');
 ```
+
+**⚠️ NUNCA use `fs` do Node.js diretamente!**
+- Não funciona no mobile
+- Quebra sandboxing do Obsidian
+- Pode corromper o vault
 
 ### 5. Parse de Frontmatter
 
-```typescript
-// Extrair frontmatter
-import { parseYaml } from 'obsidian';
+**✅ Use sempre `metadataCache` para ler frontmatter**
 
-function extractFrontmatter(content: string) {
+```typescript
+// ✅ CORRETO: Usar metadataCache (mais rápido, já está em memória!)
+const cache = this.app.metadataCache.getFileCache(file);
+const granolaId = cache?.frontmatter?.granola_id;
+const title = cache?.frontmatter?.title;
+
+// ❌ ERRADO: Não faça parsing manual!
+// Isso é lento e pode quebrar
+const content = await this.app.vault.read(file);
+const match = content.match(/^---\n([\s\S]*?)\n---/);
+```
+
+**Para MODIFICAR frontmatter (use parseYaml):**
+
+```typescript
+import { parseYaml, stringifyYaml } from 'obsidian';
+
+async function updateFrontmatter(file: TFile, updates: Record<string, any>) {
+    const content = await this.app.vault.read(file);
     const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
     const match = content.match(frontmatterRegex);
 
-    if (!match) return null;
+    let newContent: string;
+    if (match) {
+        // Atualizar existente
+        const yaml = parseYaml(match[1]);
+        Object.assign(yaml, updates);
+        const newYaml = stringifyYaml(yaml);
+        newContent = content.replace(match[0], `---\n${newYaml}---`);
+    } else {
+        // Adicionar novo
+        const newYaml = stringifyYaml(updates);
+        newContent = `---\n${newYaml}---\n${content}`;
+    }
 
-    try {
-        return parseYaml(match[1]);
-    } catch (error) {
-        console.error('Failed to parse YAML:', error);
-        return null;
+    await this.app.vault.modify(file, newContent);
+}
+```
+
+**⚠️ Importante:** `metadataCache` é assíncrono! Use o evento `changed`:
+
+```typescript
+this.registerEvent(
+    this.app.metadataCache.on('changed', (file) => {
+        const cache = this.app.metadataCache.getFileCache(file);
+        // cache agora está atualizado
+    })
+);
+```
+
+## ⚠️ REGRA IMPORTANTE: Use APIs Nativas do Obsidian
+
+**SEMPRE prefira as APIs nativas do Obsidian ao invés de criar implementações customizadas.**
+
+O Obsidian já fornece APIs robustas e testadas para:
+- ✅ Modals e diálogos (`Modal`, `SuggestModal`)
+- ✅ Notices e notificações (`Notice`)
+- ✅ Settings UI (`Setting`, `PluginSettingTab`)
+- ✅ File operations (`vault.create`, `vault.read`, `vault.modify`)
+- ✅ Event handling (`registerEvent`, `registerInterval`)
+- ✅ Metadata parsing (`metadataCache.getFileCache`)
+
+### Por que usar APIs Nativas?
+
+1. **Lifecycle gerenciado automaticamente**: ESC key, cleanup, DOM management
+2. **Consistência**: Mesmo look & feel dos modais nativos do Obsidian
+3. **Menos bugs**: Código battle-tested usado por milhares de plugins
+4. **Menos código**: ~70% menos código para manter
+5. **Compatibilidade**: Funciona em todas as plataformas (Desktop, Mobile)
+
+### Exemplo: Modal ❌ ERRADO vs ✅ CORRETO
+
+#### ❌ ERRADO: Implementação Manual (70 linhas)
+```typescript
+// NÃO FAÇA ISSO!
+private showDialog(): Promise<boolean> {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal-container';
+        // ... 60+ linhas de DOM manipulation
+        // ... event listeners manuais
+        // ... cleanup manual
+        document.body.appendChild(modal);
+    });
+}
+```
+
+#### ✅ CORRETO: API Nativa (15 linhas)
+```typescript
+// FAÇA ISSO!
+class MyModal extends Modal {
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('h2', { text: 'Title' });
+        // contentEl é limpo automaticamente
+        // ESC key funciona automaticamente
     }
 }
 
-// Modificar frontmatter
-function updateFrontmatter(content: string, updates: Record<string, any>): string {
-    const match = content.match(/^---\n([\s\S]*?)\n---/);
-    if (!match) {
-        // Adicionar novo frontmatter
-        const yaml = Object.entries(updates)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join('\n');
-        return `---\n${yaml}\n---\n${content}`;
+// Uso
+new MyModal(this.app).open();
+```
+
+## APIs Nativas Essenciais do Obsidian
+
+### 1. Notice (Notificações)
+
+**✅ Use `Notice` ao invés de `alert()` ou custom notifications**
+
+```typescript
+import { Notice } from 'obsidian';
+
+// Simples
+new Notice('Operation completed!');
+
+// Com duração customizada (em ms)
+new Notice('This will disappear in 10 seconds', 10000);
+
+// Com fragmento HTML customizado
+const fragment = document.createDocumentFragment();
+const div = fragment.createDiv();
+div.innerHTML = '<strong>Bold text</strong> and normal text';
+new Notice(fragment);
+```
+
+### 2. Setting (Configurações UI)
+
+**✅ Use `Setting` para criar UI de configurações**
+
+```typescript
+new Setting(containerEl)
+    .setName('Feature Name')
+    .setDesc('Description of what this does')
+    .addToggle(toggle => toggle
+        .setValue(this.settings.featureEnabled)
+        .onChange(async (value) => {
+            this.settings.featureEnabled = value;
+            await this.saveSettings();
+        }));
+
+// Dropdown
+new Setting(containerEl)
+    .setName('Select Option')
+    .addDropdown(dropdown => dropdown
+        .addOption('option1', 'Option 1')
+        .addOption('option2', 'Option 2')
+        .setValue(this.settings.selectedOption)
+        .onChange(async (value) => {
+            this.settings.selectedOption = value;
+            await this.saveSettings();
+        }));
+
+// Text input
+new Setting(containerEl)
+    .setName('API Key')
+    .addText(text => text
+        .setPlaceholder('Enter your API key')
+        .setValue(this.settings.apiKey)
+        .onChange(async (value) => {
+            this.settings.apiKey = value;
+            await this.saveSettings();
+        }));
+
+// Botão
+new Setting(containerEl)
+    .setName('Action')
+    .setDesc('Click to perform action')
+    .addButton(button => button
+        .setButtonText('Do Something')
+        .setCta() // Makes it a call-to-action button
+        .onClick(() => {
+            this.performAction();
+        }));
+```
+
+### 3. SuggestModal (Autocomplete/Fuzzy Search)
+
+**✅ Use `SuggestModal` para seleção com busca**
+
+```typescript
+import { SuggestModal } from 'obsidian';
+
+class FileSuggestModal extends SuggestModal<TFile> {
+    getSuggestions(query: string): TFile[] {
+        return this.app.vault.getMarkdownFiles()
+            .filter(file => file.basename.toLowerCase().includes(query.toLowerCase()));
     }
 
-    // Atualizar existente
-    // Implementação depende da complexidade
+    renderSuggestion(file: TFile, el: HTMLElement) {
+        el.createEl('div', { text: file.basename });
+        el.createEl('small', { text: file.path });
+    }
+
+    onChooseSuggestion(file: TFile, evt: MouseEvent | KeyboardEvent) {
+        new Notice(`Selected: ${file.basename}`);
+        // Fazer algo com o arquivo selecionado
+    }
 }
+
+// Usar
+new FileSuggestModal(this.app).open();
+```
+
+### 4. Menu (Context Menu)
+
+**✅ Use `Menu` para menus contextuais**
+
+```typescript
+import { Menu } from 'obsidian';
+
+const menu = new Menu();
+
+menu.addItem((item) =>
+    item
+        .setTitle('Delete')
+        .setIcon('trash')
+        .onClick(() => {
+            // Deletar
+        })
+);
+
+menu.addItem((item) =>
+    item
+        .setTitle('Rename')
+        .setIcon('pencil')
+        .onClick(() => {
+            // Renomear
+        })
+);
+
+menu.showAtMouseEvent(event);
+```
+
+### 5. MarkdownRenderer (Renderizar Markdown)
+
+**✅ Use `MarkdownRenderer` para mostrar markdown renderizado**
+
+```typescript
+import { MarkdownRenderer } from 'obsidian';
+
+const markdownText = '# Title\n\nSome **bold** text';
+const containerEl = document.createElement('div');
+
+await MarkdownRenderer.renderMarkdown(
+    markdownText,
+    containerEl,
+    '', // sourcePath (pode ser vazio)
+    this // component (para cleanup)
+);
+```
+
+### 6. parseYaml e stringifyYaml
+
+**✅ Use funções built-in para YAML**
+
+```typescript
+import { parseYaml, stringifyYaml } from 'obsidian';
+
+// Parse
+const data = parseYaml('key: value\nlist:\n  - item1\n  - item2');
+
+// Stringify
+const yaml = stringifyYaml({ key: 'value', list: ['item1', 'item2'] });
 ```
 
 ## Padrões de Código
@@ -293,8 +564,10 @@ async applySettings() {
 
 ### 4. Event Handling
 
+**✅ SEMPRE use `registerEvent` para cleanup automático**
+
 ```typescript
-// Registrar eventos para cleanup automático
+// ✅ CORRETO: registerEvent gerencia cleanup automaticamente
 this.registerEvent(
     this.app.vault.on('create', (file) => {
         this.handleFileCreate(file);
@@ -302,12 +575,34 @@ this.registerEvent(
 );
 
 this.registerEvent(
-    this.app.vault.on('modify', (file) => {
-        this.handleFileModify(file);
+    this.app.metadataCache.on('changed', (file) => {
+        this.handleMetadataChange(file);
     })
 );
 
-// Obsidian automaticamente remove no onunload
+// Obsidian remove automaticamente no onunload()
+```
+
+**Eventos importantes do Vault:**
+- `create`: Arquivo/pasta criado
+- `delete`: Arquivo/pasta deletado
+- `rename`: Arquivo/pasta renomeado
+- `modify`: Conteúdo do arquivo modificado
+
+**Eventos importantes do MetadataCache:**
+- `changed`: Frontmatter ou cache atualizado (use este!)
+- `resolved`: Cache inicial carregado
+
+**❌ ERRADO: Não gerencie event listeners manualmente**
+```typescript
+// NÃO FAÇA ISSO!
+const handler = () => { /* ... */ };
+this.app.vault.on('create', handler);
+
+onunload() {
+    // Você vai esquecer de remover e ter memory leak!
+    this.app.vault.off('create', handler);
+}
 ```
 
 ### 5. Intervalos e Timers

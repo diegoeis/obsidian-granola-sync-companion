@@ -2,7 +2,7 @@
 
 A companion plugin for Obsidian Granola Sync that prevents note duplication and extends functionality.
 
-> 📖 **[Ver Índice Completo da Documentação](./DOCS-INDEX.md)** - Guia de navegação de todos os documentos disponíveis
+> 📖 **[Ver Índice Completo da Documentação](./.claude/docs/DOCS-INDEX.md)** - Guia de navegação de todos os documentos disponíveis
 
 ## Features
 

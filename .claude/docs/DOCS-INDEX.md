@@ -130,7 +130,37 @@ Este projeto contém documentação completa para facilitar o desenvolvimento do
 
 ---
 
-### 6. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md)
+### 6. [OBSIDIAN-PLUGIN-DEVELOPMENT.md](./OBSIDIAN-PLUGIN-DEVELOPMENT.md)
+**O que é**: Guia completo de desenvolvimento de plugins Obsidian (oficial)
+**Quando usar**:
+- Aprender sobre Obsidian plugin development
+- Entender Plugin Guidelines (OBRIGATÓRIO)
+- Consultar informações detalhadas sobre APIs
+- Verificar best practices oficiais
+
+**Conteúdo**:
+- ⚠️ Plugin Guidelines (CRÍTICO - regras obrigatórias)
+- 🏗️ Plugin Anatomy & Lifecycle
+- 🎨 User Interface (Modals, Settings, Views, etc.)
+- 📁 File Operations (Vault API, MetadataCache)
+- 🎯 Events
+- ✏️ Editor API
+- ⚡ Performance & Optimization
+- 🔒 Security
+- 📱 Mobile Compatibility
+- ⚛️ React Integration
+- ❌ Anti-Patterns completos
+
+**Destaques**:
+- Baseado na documentação oficial do Obsidian
+- Regras de segurança (XSS, resource management)
+- Performance tips (load time, caching)
+- Compatibilidade mobile
+- Anti-patterns detalhados
+
+---
+
+### 7. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md)
 **O que é**: Referência rápida de APIs nativas do Obsidian
 **Quando usar**:
 - Implementar modal, notice, menu, etc
@@ -149,11 +179,11 @@ Este projeto contém documentação completa para facilitar o desenvolvimento do
 - Exemplos práticos de cada API
 - Comparação entre ✅ correto e ❌ incorreto
 - CSS classes úteis do Obsidian
-- Links para documentação oficial
+- Referência ao guia completo
 
 ---
 
-### 7. [DOCS-INDEX.md](./DOCS-INDEX.md) _(este arquivo)_
+### 8. [DOCS-INDEX.md](./DOCS-INDEX.md) _(este arquivo)_
 **O que é**: Índice de navegação da documentação
 **Quando usar**:
 - Não saber qual documento ler
@@ -167,14 +197,16 @@ Este projeto contém documentação completa para facilitar o desenvolvimento do
 ### "Nunca trabalhei neste projeto"
 1. Leia [README.md](./README.md) primeiro
 2. Depois [CONTEXT.md](./CONTEXT.md) completo
-3. Configure ambiente com [DEVELOPMENT.md](./DEVELOPMENT.md) → Início Rápido
-4. Mantenha [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) e [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) abertos para consultas
+3. Leia [OBSIDIAN-PLUGIN-DEVELOPMENT.md](./OBSIDIAN-PLUGIN-DEVELOPMENT.md) → Plugin Guidelines (OBRIGATÓRIO)
+4. Configure ambiente com [DEVELOPMENT.md](./DEVELOPMENT.md) → Início Rápido
+5. Mantenha [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) e [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) abertos para consultas
 
 ### "Quero adicionar uma nova funcionalidade"
-1. [DEVELOPMENT.md](./DEVELOPMENT.md) → Workflow de Desenvolvimento → Adicionar Nova Funcionalidade
-2. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) → Buscar API nativa para usar
-3. [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) → Snippets Comuns
-4. [CONTEXT.md](./CONTEXT.md) → Padrões de Código (para seguir padrões existentes)
+1. [OBSIDIAN-PLUGIN-DEVELOPMENT.md](./OBSIDIAN-PLUGIN-DEVELOPMENT.md) → Verificar Plugin Guidelines
+2. [DEVELOPMENT.md](./DEVELOPMENT.md) → Workflow de Desenvolvimento → Adicionar Nova Funcionalidade
+3. [OBSIDIAN-APIS.md](./OBSIDIAN-APIS.md) → Buscar API nativa para usar
+4. [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) → Snippets Comuns
+5. [CONTEXT.md](./CONTEXT.md) → Padrões de Código (para seguir padrões existentes)
 
 ### "Encontrei um bug"
 1. [DEVELOPMENT.md](./DEVELOPMENT.md) → Debugging Tips
@@ -329,12 +361,12 @@ Esta documentação deve ser:
 
 ## 📊 Estatísticas da Documentação
 
-- **Total de documentos**: 7
-- **Linhas de documentação**: ~3000+
-- **Tópicos cobertos**: 60+
-- **Exemplos de código**: 120+
-- **Comandos e snippets**: 90+
-- **APIs documentadas**: 15+
+- **Total de documentos**: 8
+- **Linhas de documentação**: ~5000+
+- **Tópicos cobertos**: 80+
+- **Exemplos de código**: 200+
+- **Comandos e snippets**: 120+
+- **APIs documentadas**: 25+
 
 ---
 
